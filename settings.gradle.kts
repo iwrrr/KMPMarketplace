@@ -20,3 +20,4 @@ dependencyResolutionManagement {
 
 include(":composeApp")
 include(":apis:product")
+include(":features:home")

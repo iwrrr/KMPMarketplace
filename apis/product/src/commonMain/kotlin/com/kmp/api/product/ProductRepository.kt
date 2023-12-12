@@ -4,7 +4,7 @@ import com.kmp.api.product.model.ProductList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class ProductApi {
+class ProductRepository {
 
     fun getProductList(): Flow<List<ProductList>> {
         return flow {

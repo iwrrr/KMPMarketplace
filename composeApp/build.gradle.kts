@@ -35,9 +35,15 @@ kotlin {
             implementation(compose.ui)
             @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
-            
+
+            // APIs
             implementation(projects.apis.product)
+
+            // Features
             implementation(projects.features.home)
+            
+            // Libraries
+            implementation(projects.libraries.core)
         }
 
         androidMain.dependencies {

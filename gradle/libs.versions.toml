@@ -20,6 +20,7 @@ kotlin = "1.9.21"
 android-lifecycle = "2.6.2"
 build-konfig = "0.15.1"
 coroutine = "1.7.3"
+image-loader = "1.7.1"
 kotlin-serialization = "1.9.21"
 ktor = "2.3.7"
 precompose = "1.5.9"
@@ -44,6 +45,7 @@ compose-material = { module = "androidx.compose.material:material", version.ref 
 # Changes
 android-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "android-lifecycle" }
 android-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "android-lifecycle" }
+image-loader = { module = "io.github.qdsfdhvh:image-loader", version.ref = "image-loader" }
 kotlin-coroutine = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutine" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }

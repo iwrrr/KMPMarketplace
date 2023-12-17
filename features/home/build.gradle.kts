@@ -36,6 +36,7 @@ kotlin {
             implementation(compose.components.resources)
 
             implementation(projects.apis.product)
+            implementation(projects.libraries.component)
             implementation(projects.libraries.core)
         }
 

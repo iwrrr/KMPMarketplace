@@ -10,25 +10,38 @@ import kotlinx.coroutines.launch
 class HomeViewModel(private val productRepository: ProductRepository) :
     ViewModel<HomeState, HomeIntent>(HomeState()) {
 
+    init {
+        sendIntent(
+            HomeIntent.GetCategoryList
+        )
+        sendIntent(
+            HomeIntent.GetProductList
+        )
+    }
+
     override fun sendIntent(intent: Intent) {
         when (intent) {
-            is HomeIntent.SetName -> {
-                updateName(intent.name)
+            is HomeIntent.GetCategoryList -> {
+                getCategoryList()
             }
 
             is HomeIntent.GetProductList -> {
                 getProductList()
             }
-
-            is HomeIntent.ShowSnackbar -> {
-                intent.coroutineScope.launch {
-                    intent.snackbarState.showSnackbar(intent.name)
-                }
-            }
         }
     }
 
-    fun getProductList() = viewModelScope.launch {
+    private fun getCategoryList() = viewModelScope.launch {
+        productRepository.getCategoryList()
+            .stateIn(this)
+            .collectLatest {
+                updateUiState {
+                    copy(asyncCategoryList = it)
+                }
+            }
+    }
+
+    private fun getProductList() = viewModelScope.launch {
         productRepository.getProductList()
             .stateIn(this)
             .collectLatest {
@@ -36,11 +49,5 @@ class HomeViewModel(private val productRepository: ProductRepository) :
                     copy(asyncProductList = it)
                 }
             }
-    }
-
-    private fun updateName(name: String) = viewModelScope.launch {
-        updateUiState {
-            copy(name = name)
-        }
     }
 }

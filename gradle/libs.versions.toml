@@ -18,6 +18,7 @@ kotlin = "1.9.21"
 
 # Changes
 android-lifecycle = "2.6.2"
+build-konfig = "0.15.1"
 coroutine = "1.7.3"
 kotlin-serialization = "1.9.21"
 ktor = "2.3.7"
@@ -56,3 +57,4 @@ androidLibrary = { id = "com.android.library", version.ref = "agp" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-serialization" }
+buildKonfig = { id = "com.codingfeline.buildkonfig", version.ref = "build-konfig" }

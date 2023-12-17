@@ -1,6 +1,5 @@
-import org.jetbrains.compose.ExperimentalComposeLibrary
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.ExperimentalComposeLibrary
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -46,6 +45,9 @@ kotlin {
 
             // Libraries
             implementation(projects.libraries.core)
+
+            // Dependencies
+            implementation(libs.precompose)
         }
 
         androidMain.dependencies {
@@ -95,10 +97,9 @@ android {
 
 buildkonfig {
     packageName = "com.kmp.marketplace"
-    // objectName = 'YourAwesomeConfig'
-    // exposeObjectWithName = 'YourAwesomePublicConfig'
 
     defaultConfigs {
+        buildConfigField(STRING, "APP_NAME", "Marketplace")
         buildConfigField(STRING, "BASE_URL", "https://marketfake.fly.dev/")
     }
 }

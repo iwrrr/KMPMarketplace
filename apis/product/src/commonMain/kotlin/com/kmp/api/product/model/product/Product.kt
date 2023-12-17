@@ -1,9 +1,10 @@
-package com.kmp.api.product.model
+package com.kmp.api.product.model.product
 
-data class ProductList(
+data class Product(
     val id: Int,
     val name: String,
     val price: Double,
     val image: String,
     val discount: Int,
+    val rating: Double,
 )

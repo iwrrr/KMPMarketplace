@@ -1,11 +1,11 @@
-package com.kmp.api.product.model
+package com.kmp.api.product.model.product
 
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ProductListResponse(
+data class ProductResponse(
     @SerialName("data")
     val `data`: List<DataResponse?>?,
     @SerialName("message")

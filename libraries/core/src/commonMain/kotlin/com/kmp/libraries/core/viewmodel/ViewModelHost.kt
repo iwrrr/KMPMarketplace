@@ -2,23 +2,23 @@ package com.kmp.libraries.core.viewmodel
 
 import androidx.compose.runtime.compositionLocalOf
 
+@Suppress("UNCHECKED_CAST")
 @OptIn(ExperimentalStdlibApi::class)
 class ViewModelHost : AutoCloseable {
-    private val viewModels = mutableMapOf<String, ViewModel>()
+    private val viewModelsPlatform = mutableMapOf<String, ViewModel<*, *>>()
 
-    @Suppress("UNCHECKED_CAST")
-    fun <T: ViewModel> getViewModel(viewModel: T): T {
+    fun <T : ViewModel<*, *>> getViewModel(viewModel: T): T {
         val key = viewModel::class.simpleName.orEmpty()
-        return viewModels.getOrPut(key) {
+        return viewModelsPlatform.getOrPut(key) {
             viewModel
         } as T
     }
 
     override fun close() {
-        viewModels.onEach {
+        viewModelsPlatform.onEach {
             it.value.cleared()
         }
-        viewModels.clear()
+        viewModelsPlatform.clear()
     }
 }
 

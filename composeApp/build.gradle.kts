@@ -42,6 +42,7 @@ kotlin {
 
             // Features
             implementation(projects.features.home)
+            implementation(projects.features.productDetail)
 
             // Libraries
             implementation(projects.libraries.core)

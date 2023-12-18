@@ -1,4 +1,4 @@
-package com.kmp.features.home
+package com.kmp.features.home.viewmodel
 
 import com.kmp.api.product.model.category.Category
 import com.kmp.api.product.model.product.Product

@@ -33,7 +33,7 @@ kotlin {
             @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
 
-            implementation(libs.image.loader)
+            api(libs.image.loader)
         }
 
         androidMain.dependencies {

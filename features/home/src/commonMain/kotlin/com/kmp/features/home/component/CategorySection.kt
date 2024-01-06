@@ -29,7 +29,7 @@ import com.kmp.libraries.component.utils.bounceClickable
 import com.kmp.libraries.core.state.Async
 
 @Composable
-fun CategorySection(state: HomeState) {
+fun CategorySection(state: HomeState, onCategoryClick: (Category) -> Unit) {
     Column {
         Text(
             modifier = Modifier.fillMaxWidth(),
@@ -59,7 +59,7 @@ fun CategorySection(state: HomeState) {
                     userScrollEnabled = false
                 ) {
                     items(async.data) {
-                        CategoryItem(it, onItemClick = {})
+                        CategoryItem(it, onItemClick = onCategoryClick)
                     }
                 }
             }

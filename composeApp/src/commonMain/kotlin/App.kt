@@ -48,7 +48,7 @@ fun App() {
                     scene(route = "/home") {
                         Home(
                             navigateToProductDetail = { navigator.navigate("/product/${it.id}") },
-                            onCategoryClick = {
+                            navigateToProductList = {
                                 val argument = ProductListArgument(
                                     categoryId = it.id,
                                     categoryName = it.name

@@ -42,12 +42,16 @@ class HomeViewModel(private val productRepository: ProductRepository) :
     }
 
     private fun getProductList() = viewModelScope.launch {
-        productRepository.getProductList()
+        productRepository.getProductList(RATING_QUERY)
             .stateIn(this)
             .collectLatest {
                 updateUiState {
                     copy(asyncProductList = it)
                 }
             }
+    }
+
+    companion object {
+        private const val RATING_QUERY = "?sort=rating"
     }
 }

@@ -13,8 +13,8 @@ class ProductDataSources(
         return getHttpResponse(endpoint)
     }
 
-    suspend fun getProductList(): HttpResponse {
-        val endpoint = "product"
+    suspend fun getProductList(query: String): HttpResponse {
+        val endpoint = "product$query"
         return getHttpResponse(endpoint)
     }
 }

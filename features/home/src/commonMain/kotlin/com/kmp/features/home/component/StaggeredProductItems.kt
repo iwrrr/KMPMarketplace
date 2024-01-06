@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -42,7 +43,10 @@ import com.kmp.libraries.component.utils.toRupiah
 import com.kmp.libraries.core.state.Async
 import com.seiko.imageloader.rememberImagePainter
 
-fun LazyStaggeredGridScope.staggeredProductItems(state: HomeState) {
+fun LazyStaggeredGridScope.staggeredProductItems(
+    state: HomeState,
+    onItemClick: (Product) -> Unit,
+) {
 
     when (val async = state.asyncProductList) {
         Async.Loading -> {
@@ -59,14 +63,17 @@ fun LazyStaggeredGridScope.staggeredProductItems(state: HomeState) {
         is Async.Success -> {
             item(span = StaggeredGridItemSpan.FullLine) {
                 Divider(
-                    modifier = Modifier.fullOffset(12),
+                    modifier = Modifier.fullOffset(16),
                     color = Color.LightGray.copy(alpha = 0.3f),
                     thickness = 8.dp
                 )
                 Spacer(modifier = Modifier.height(16.dp))
             }
             items(async.data) {
-                ProductItem(product = it, onItemClick = {})
+                ProductItem(
+                    product = it,
+                    onItemClick = onItemClick
+                )
             }
         }
 
@@ -97,7 +104,7 @@ private fun ProductItem(product: Product, onItemClick: (Product) -> Unit) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(120.dp)
+                    .aspectRatio(0.9f)
                     .background(color = Color.LightGray.copy(alpha = 0.3f)),
             ) {
                 Image(

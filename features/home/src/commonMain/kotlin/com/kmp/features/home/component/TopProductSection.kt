@@ -42,7 +42,10 @@ import com.kmp.libraries.core.state.Async
 import com.seiko.imageloader.rememberImagePainter
 
 @Composable
-fun TopProductSection(state: HomeState) {
+fun TopProductSection(
+    state: HomeState,
+    onItemClick: (Product) -> Unit,
+) {
     Column {
         Text(
             modifier = Modifier.fillMaxWidth(),
@@ -63,13 +66,16 @@ fun TopProductSection(state: HomeState) {
             is Async.Success -> {
                 LazyRow(
                     modifier = Modifier
-                        .fullOffset(12)
+                        .fullOffset(16)
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    contentPadding = PaddingValues(12.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
                 ) {
                     items(async.data) {
-                        ProductItem(product = it, onItemClick = {})
+                        ProductItem(
+                            product = it,
+                            onItemClick = onItemClick
+                        )
                     }
                 }
             }

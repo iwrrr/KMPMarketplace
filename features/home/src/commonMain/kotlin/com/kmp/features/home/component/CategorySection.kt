@@ -52,7 +52,7 @@ fun CategorySection(state: HomeState) {
             is Async.Success -> {
                 LazyVerticalGrid(
                     modifier = Modifier.height(150.dp),
-                    columns = GridCells.Fixed(3),
+                    columns = GridCells.Fixed(4),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(vertical = 12.dp),
@@ -91,7 +91,7 @@ fun CategoryItem(category: Category, onItemClick: (Category) -> Unit) {
             Text(
                 text = category.name,
                 textAlign = TextAlign.Center,
-                fontSize = 12.sp
+                fontSize = 10.sp
             )
         }
     }

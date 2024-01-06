@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.kmp.api.product.ProductRepository
+import com.kmp.api.product.model.product.Product
 import com.kmp.features.home.component.CategorySection
 import com.kmp.features.home.component.HeaderSection
 import com.kmp.features.home.component.TopProductSection
@@ -23,7 +24,9 @@ import com.kmp.libraries.core.LocalAppConfig
 import com.kmp.libraries.core.viewmodel.rememberViewModel
 
 @Composable
-fun Home() {
+fun Home(
+    navigateToProductDetail: (Product) -> Unit
+) {
     val appConfig = LocalAppConfig.current
     val productRepository = remember { ProductRepository(appConfig) }
     val homeViewModel = rememberViewModel { HomeViewModel(productRepository) }
@@ -40,12 +43,25 @@ fun Home() {
             columns = StaggeredGridCells.Fixed(2),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalItemSpacing = 12.dp,
-            contentPadding = PaddingValues(12.dp)
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
         ) {
             item(span = StaggeredGridItemSpan.FullLine) { CategorySection(homeState) }
-            item(span = StaggeredGridItemSpan.FullLine) { TopProductSection(homeState) }
-            item(span = StaggeredGridItemSpan.FullLine) { TopProductSection(homeState) }
-            staggeredProductItems(homeState)
+            item(span = StaggeredGridItemSpan.FullLine) {
+                TopProductSection(
+                    state = homeState,
+                    onItemClick = navigateToProductDetail
+                )
+            }
+            item(span = StaggeredGridItemSpan.FullLine) {
+                TopProductSection(
+                    state = homeState,
+                    onItemClick = navigateToProductDetail
+                )
+            }
+            staggeredProductItems(
+                state = homeState,
+                onItemClick = navigateToProductDetail
+            )
         }
     }
 }

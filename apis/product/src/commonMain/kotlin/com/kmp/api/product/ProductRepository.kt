@@ -27,7 +27,7 @@ class ProductRepository(
                 Async.Failure(throwable)
             } else {
                 val moreCategory = Category(id = -1, name = "More", description = "")
-                val data = Mapper.mapResponseToCategoryList(response).take(5).toMutableList()
+                val data = Mapper.mapResponseToCategoryList(response).take(7).toMutableList()
                 data.add(moreCategory)
                 Async.Success(data)
             }

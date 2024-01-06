@@ -11,6 +11,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import com.kmp.features.home.screen.Home
 import com.kmp.features.product_detail.screen.ProductDetail
+import com.kmp.features.product_list.ProductList
+import com.kmp.features.product_list.ProductListArgument
+import com.kmp.libraries.component.utils.toData
+import com.kmp.libraries.component.utils.toJson
 import com.kmp.libraries.core.LocalAppConfig
 import com.kmp.libraries.core.viewmodel.LocalViewModelHost
 import com.kmp.libraries.core.viewmodel.ViewModelHost
@@ -42,11 +46,29 @@ fun App() {
                     initialRoute = "/home"
                 ) {
                     scene(route = "/home") {
-                        Home(navigateToProductDetail = { navigator.navigate("/product/${it.id}") })
+                        Home(
+                            navigateToProductDetail = { navigator.navigate("/product/${it.id}") },
+                            onCategoryClick = {
+                                val argument = ProductListArgument(
+                                    categoryId = it.id,
+                                    categoryName = it.name
+                                ).toJson()
+
+                                navigator.navigate("/list/$argument")
+                            },
+                        )
                     }
                     scene(route = "/product/{id}") {
                         val productId = it.pathMap["id"].orEmpty().toIntOrNull() ?: 0
                         ProductDetail(productId = productId)
+                    }
+                    scene(route = "/list/{argument}") {
+                        val argumentJson = it.pathMap["argument"] ?: "{}"
+                        val argument = argumentJson.toData<ProductListArgument>()
+                        ProductList(
+                            categoryName = argument.categoryName,
+                            categoryId = argument.categoryId
+                        )
                     }
                 }
             }

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.kotlinSerialization)
 }
 
@@ -12,33 +13,35 @@ kotlin {
             }
         }
     }
-    
+
     listOf(
         iosX64(),
         iosArm64(),
         iosSimulatorArm64()
     ).forEach {
         it.binaries.framework {
-            baseName = "product"
+            baseName = "product_list"
             isStatic = true
         }
     }
 
     sourceSets {
         commonMain.dependencies {
-            implementation(libs.kotlin.coroutine)
-            implementation(projects.libraries.core)
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material)
+            implementation(compose.ui)
+            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+            implementation(compose.components.resources)
 
-            api(libs.paging.cashapp.common)
-            api(libs.paging.cashapp.compose)
+            implementation(projects.apis.product)
+            implementation(projects.libraries.component)
+            implementation(projects.libraries.core)
         }
 
         androidMain.dependencies {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
-
-            api(libs.paging.androidx.runtime)
-            api(libs.paging.androidx.compose)
         }
 
         commonTest.dependencies {
@@ -48,7 +51,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.kmp.api.product"
+    namespace = "com.kmp.features.product_list"
     compileSdk = 34
     defaultConfig {
         minSdk = 24

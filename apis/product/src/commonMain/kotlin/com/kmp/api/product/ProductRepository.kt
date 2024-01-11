@@ -34,9 +34,9 @@ class ProductRepository(
         }
     }
 
-    fun getProductList(): Flow<Async<List<Product>>> {
+    fun getProductList(query: String): Flow<Async<List<Product>>> {
         return suspend {
-            dataSources.getProductList()
+            dataSources.getProductList(query)
         }.reduce<ProductResponse, List<Product>> { response ->
             val responseData = response.data
 

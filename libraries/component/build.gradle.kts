@@ -34,6 +34,7 @@ kotlin {
             implementation(compose.components.resources)
 
             api(libs.image.loader)
+            implementation(libs.ktor.serialization.kotlinx.json)
         }
 
         androidMain.dependencies {

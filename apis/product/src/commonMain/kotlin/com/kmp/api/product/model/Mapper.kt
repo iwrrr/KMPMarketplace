@@ -23,7 +23,7 @@ object Mapper {
         return productResponse?.data?.map(::mapItemResponseToProduct).orEmpty()
     }
 
-    private fun mapItemResponseToProduct(itemResponse: ProductResponse.DataResponse?): Product {
+    fun mapItemResponseToProduct(itemResponse: ProductResponse.DataResponse?): Product {
         return Product(
             id = itemResponse?.id ?: 0,
             name = itemResponse?.name.orEmpty(),

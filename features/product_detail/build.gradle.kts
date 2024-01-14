@@ -36,6 +36,8 @@ kotlin {
             implementation(projects.apis.product)
             implementation(projects.libraries.component)
             implementation(projects.libraries.core)
+
+            implementation(libs.flexible.bottomsheet.material)
         }
 
         androidMain.dependencies {

@@ -27,6 +27,7 @@ image-loader = "1.7.1"
 kotlin-serialization = "1.9.21"
 ktor = "2.3.7"
 precompose = "1.5.9"
+realm = "1.11.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -62,6 +63,8 @@ paging-androidx-runtime = { module = "androidx.paging:paging-runtime", version.r
 paging-cashapp-common = { module = "app.cash.paging:paging-common", version.ref = "paging-cashapp" }
 paging-cashapp-compose = { module = "app.cash.paging:paging-compose-common", version.ref = "paging-cashapp" }
 precompose = { module = "moe.tlaster:precompose", version.ref = "precompose" }
+realm = { module = "io.realm.kotlin:library-base", version.ref = "realm" }
+realm-kotlinsync = { module = "io.realm.kotlin:library-sync", version.ref = "realm" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

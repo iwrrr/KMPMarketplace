@@ -19,7 +19,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach {
         it.binaries.framework {
-            baseName = "product_detail"
+            baseName = "favorite"
             isStatic = true
         }
     }
@@ -36,8 +36,6 @@ kotlin {
             implementation(projects.apis.product)
             implementation(projects.libraries.component)
             implementation(projects.libraries.core)
-
-            implementation(libs.flexible.bottomsheet.material)
         }
 
         androidMain.dependencies {
@@ -52,7 +50,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.kmp.features.product_detail"
+    namespace = "com.kmp.features.favorite"
     compileSdk = 34
     defaultConfig {
         minSdk = 24

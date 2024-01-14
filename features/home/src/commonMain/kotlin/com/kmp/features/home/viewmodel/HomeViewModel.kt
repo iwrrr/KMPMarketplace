@@ -7,8 +7,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class HomeViewModel(private val productRepository: ProductRepository) :
-    ViewModel<HomeState, HomeIntent>(HomeState()) {
+class HomeViewModel(
+    private val productRepository: ProductRepository
+) : ViewModel<HomeState, HomeIntent>(HomeState()) {
 
     init {
         sendIntent(

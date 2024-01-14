@@ -1,17 +1,557 @@
 package com.kmp.features.product_detail.screen
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.BottomAppBar
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Chip
+import androidx.compose.material.ChipDefaults
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Divider
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.ShoppingCart
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.kmp.api.product.LocalProductRepository
+import com.kmp.api.product.model.product.product_detail.ProductDetail
+import com.kmp.features.product_detail.viewmodel.ProductDetailIntent
+import com.kmp.features.product_detail.viewmodel.ProductDetailViewModel
+import com.kmp.libraries.component.utils.bounceClickable
+import com.kmp.libraries.component.utils.toRupiah
+import com.kmp.libraries.core.state.Async
+import com.kmp.libraries.core.viewmodel.rememberViewModel
+import com.seiko.imageloader.rememberImagePainter
+import com.skydoves.flexible.bottomsheet.material.FlexibleBottomSheet
+import com.skydoves.flexible.core.FlexibleSheetValue
+import com.skydoves.flexible.core.rememberFlexibleBottomSheetState
+import kotlinx.coroutines.launch
 
 @Composable
-fun ProductDetail(productId: Int) {
-    Scaffold {
-        Column(modifier = Modifier.systemBarsPadding()) {
-            Text(text = "DETAIL $productId")
+fun ProductDetail(
+    productId: Int,
+    navigateBack: () -> Unit
+) {
+    val productRepository = LocalProductRepository.current
+    val viewModel = rememberViewModel { ProductDetailViewModel(productRepository) }
+
+    val state by viewModel.uiState.collectAsState()
+
+    val listState = rememberLazyListState()
+
+    val isScrolled = listState.firstVisibleItemScrollOffset > 10
+
+    val appBarColor by animateColorAsState(
+        targetValue = if (isScrolled) Color.White else Color.Transparent,
+        animationSpec = tween(200, easing = LinearEasing)
+    )
+
+    val contentColor by animateColorAsState(
+        targetValue = if (isScrolled) Color.Black else Color.White,
+        animationSpec = tween(200, easing = LinearEasing)
+    )
+
+    LaunchedEffect(Unit) {
+        viewModel.sendIntent(ProductDetailIntent.GetProductDetail(productId))
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        when (val async = state.asyncProductDetail) {
+            Async.Loading -> {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+
+            is Async.Success -> {
+                ProductDetailContent(
+                    listState = listState,
+                    productDetail = async.data,
+                    isFavorite = state.isFavorite,
+                    onToggleFavoriteClick = {
+                        viewModel.sendIntent(
+                            ProductDetailIntent.ToggleFavorite(it)
+                        )
+                    }
+                )
+            }
+
+            is Async.Failure -> {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = async.throwable.message.orEmpty()
+                )
+            }
+
+            else -> {}
+        }
+
+        TopAppBar(
+            backgroundColor = appBarColor,
+            contentColor = contentColor,
+            contentPadding = WindowInsets
+                .systemBars
+                .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+                .asPaddingValues(),
+            content = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    IconButton(onClick = navigateBack) {
+                        Icon(
+                            imageVector = Icons.Outlined.ArrowBack,
+                            contentDescription = null
+                        )
+                    }
+                    IconButton(onClick = {}) {
+                        Icon(
+                            imageVector = Icons.Outlined.ShoppingCart,
+                            contentDescription = null
+                        )
+                    }
+                }
+            },
+            elevation = 0.dp
+        )
+    }
+}
+
+@Composable
+private fun ProductDetailContent(
+    listState: LazyListState,
+    productDetail: ProductDetail,
+    isFavorite: Boolean,
+    onToggleFavoriteClick: (productDetail: ProductDetail) -> Unit
+) {
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberFlexibleBottomSheetState(
+        isModal = true,
+        skipSlightlyExpanded = true,
+        containSystemBars = true
+    )
+
+    var isShowingBottomSheet by remember { mutableStateOf(false) }
+
+    Scaffold(
+        bottomBar = {
+            BottomAppBar(
+                contentPadding = WindowInsets
+                    .systemBars
+                    .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                    .asPaddingValues(),
+                backgroundColor = Color.White
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    OutlinedButton(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, color = MaterialTheme.colors.primary),
+                        onClick = {}
+                    ) {
+                        Text(text = "Beli Langsung", letterSpacing = 0.sp)
+                    }
+                    Button(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        elevation = ButtonDefaults.elevation(
+                            defaultElevation = 0.dp,
+                            pressedElevation = 0.dp,
+                            disabledElevation = 0.dp,
+                            hoveredElevation = 0.dp,
+                            focusedElevation = 0.dp
+                        ),
+                        onClick = {}
+                    ) {
+                        Text(text = "+ Keranjang", letterSpacing = 0.sp)
+                    }
+                }
+            }
+        }
+    ) {
+        Box {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = it.calculateBottomPadding()),
+                state = listState
+            ) {
+                item {
+                    ProductImageSection(images = productDetail.images)
+                }
+                item {
+                    ProductInfoSection(
+                        productDetail = productDetail,
+                        isFavorite = isFavorite,
+                        onToggleFavoriteClick = onToggleFavoriteClick
+                    )
+                }
+                item {
+                    Divider(
+                        color = Color.LightGray.copy(alpha = 0.3f),
+                        thickness = 8.dp
+                    )
+                }
+                item {
+                    ProductDetailSection(
+                        productDetail = productDetail,
+                        onReadMoreClick = {
+                            isShowingBottomSheet = !isShowingBottomSheet
+                        }
+                    )
+                }
+                item {
+                    Divider(
+                        color = Color.LightGray.copy(alpha = 0.3f),
+                        thickness = 8.dp
+                    )
+                }
+                item {
+                    ProductReviewSection(
+                        productDetail = productDetail,
+                        onSeeAllClick = {}
+                    )
+                }
+            }
+
+            if (isShowingBottomSheet) {
+                FlexibleBottomSheet(
+                    sheetState = sheetState,
+                    onDismissRequest = {
+                        isShowingBottomSheet = false
+                    },
+                ) {
+                    Button(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        onClick = {
+                            scope.launch {
+                                when (sheetState.swipeableState.currentValue) {
+                                    FlexibleSheetValue.SlightlyExpanded -> sheetState.intermediatelyExpand()
+                                    FlexibleSheetValue.IntermediatelyExpanded -> sheetState.fullyExpand()
+                                    else -> {
+                                        isShowingBottomSheet = false
+                                        sheetState.hide()
+                                    }
+                                }
+                            }
+                        },
+                    ) {
+                        Text(text = "Expand Or Hide")
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ProductImageSection(
+    images: List<String>
+) {
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        initialPageOffsetFraction = 0f,
+        pageCount = { images.size }
+    )
+
+    HorizontalPager(
+        state = pagerState,
+        pageContent = {
+            val imagePainter = rememberImagePainter(images[it])
+
+            Image(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+                    .drawWithCache {
+                        val gradient = Brush.verticalGradient(
+                            colors = listOf(Color.Black.copy(alpha = 0.7f), Color.Transparent),
+                            endY = size.height / 3
+                        )
+                        onDrawWithContent {
+                            drawContent()
+                            drawRect(gradient, blendMode = BlendMode.Multiply)
+                        }
+                    },
+                painter = imagePainter,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+            )
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun ProductInfoSection(
+    productDetail: ProductDetail,
+    isFavorite: Boolean,
+    onToggleFavoriteClick: (productDetail: ProductDetail) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .background(Color.White)
+            .padding(horizontal = 16.dp)
+            .padding(top = 12.dp),
+    ) {
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = productDetail.name,
+            fontWeight = FontWeight.Normal,
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = productDetail.price.toRupiah,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Icon(
+                modifier = Modifier.bounceClickable { onToggleFavoriteClick(productDetail) },
+                imageVector = if (isFavorite) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
+                contentDescription = null
+            )
+        }
+        if (productDetail.discount > 0) {
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .background(Color.Red.copy(alpha = 0.1f))
+                        .clip(RoundedCornerShape(8.dp))
+                        .padding(2.dp),
+                ) {
+                    Text(
+                        text = productDetail.discount.toString() + "%",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Red
+                    )
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = productDetail.price.toRupiah,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Light,
+                    color = Color.Gray,
+                    textDecoration = TextDecoration.LineThrough
+                )
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Terjual ${productDetail.userReview.size}",
+                fontSize = 13.sp
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Chip(
+                modifier = Modifier.wrapContentWidth(),
+                shape = RoundedCornerShape(8.dp),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = Color.LightGray
+                ),
+                colors = ChipDefaults.outlinedChipColors(backgroundColor = Color.White),
+                onClick = {},
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        modifier = Modifier.size(20.dp),
+                        imageVector = Icons.Rounded.Star,
+                        contentDescription = null,
+                        tint = Color(0xFFFFBF00)
+                    )
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Text(
+                        text = productDetail.rating.toString()
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "(${productDetail.userReview.size})"
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProductDetailSection(
+    productDetail: ProductDetail,
+    onReadMoreClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+
+    Column(
+        modifier = Modifier
+            .background(Color.White)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Text(
+            modifier = Modifier.fillMaxWidth(),
+            text = "Deskripsi produk",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(4.dp))
+        Column(
+            modifier = Modifier.clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onReadMoreClick
+            )
+        ) {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = productDetail.description,
+                fontSize = 14.sp,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "Baca selengkapnya",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF10B722)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProductReviewSection(
+    productDetail: ProductDetail,
+    onSeeAllClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+
+    Column(
+        modifier = Modifier
+            .background(Color.White)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Ulasan pembeli",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                modifier = Modifier.clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = onSeeAllClick
+                ),
+                text = "Lihat Semua",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = Color(0xFF10B722)
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Column {
+            Text(
+                text = productDetail.userReview.first().user,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = productDetail.userReview.first().review,
+                fontSize = 13.sp
+            )
         }
     }
 }

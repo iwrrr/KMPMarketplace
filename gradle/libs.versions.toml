@@ -22,10 +22,12 @@ paging-cashapp = "3.3.0-alpha02-0.4.0"
 android-lifecycle = "2.6.2"
 build-konfig = "0.15.1"
 coroutine = "1.7.3"
+flexible-bottomsheet-material = "0.1.2"
 image-loader = "1.7.1"
 kotlin-serialization = "1.9.21"
 ktor = "2.3.7"
 precompose = "1.5.9"
+realm = "1.11.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -47,6 +49,7 @@ compose-material = { module = "androidx.compose.material:material", version.ref 
 # Changes
 android-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "android-lifecycle" }
 android-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "android-lifecycle" }
+flexible-bottomsheet-material = { module = "com.github.skydoves:flexible-bottomsheet-material", version.ref = "flexible-bottomsheet-material" }
 image-loader = { module = "io.github.qdsfdhvh:image-loader", version.ref = "image-loader" }
 kotlin-coroutine = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutine" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -60,11 +63,14 @@ paging-androidx-runtime = { module = "androidx.paging:paging-runtime", version.r
 paging-cashapp-common = { module = "app.cash.paging:paging-common", version.ref = "paging-cashapp" }
 paging-cashapp-compose = { module = "app.cash.paging:paging-compose-common", version.ref = "paging-cashapp" }
 precompose = { module = "moe.tlaster:precompose", version.ref = "precompose" }
+realm = { module = "io.realm.kotlin:library-base", version.ref = "realm" }
+realm-kotlinsync = { module = "io.realm.kotlin:library-sync", version.ref = "realm" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
+buildKonfig = { id = "com.codingfeline.buildkonfig", version.ref = "build-konfig" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-serialization" }
-buildKonfig = { id = "com.codingfeline.buildkonfig", version.ref = "build-konfig" }
+realm = { id = "io.realm.kotlin", version.ref = "realm" }

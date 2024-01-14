@@ -35,7 +35,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kmp.api.product.model.product.Product
+import com.kmp.api.product.model.product.product.Product
 import com.kmp.features.home.viewmodel.HomeState
 import com.kmp.libraries.component.utils.bounceClickable
 import com.kmp.libraries.component.utils.fullOffset
@@ -139,7 +139,7 @@ private fun ProductItem(product: Product, onItemClick: (Product) -> Unit) {
                             text = product.price.toRupiah,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Light,
-                            color = Color.LightGray,
+                            color = Color.Gray,
                             textDecoration = TextDecoration.LineThrough
                         )
                         Spacer(modifier = Modifier.width(2.dp))
@@ -154,14 +154,16 @@ private fun ProductItem(product: Product, onItemClick: (Product) -> Unit) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        modifier = Modifier.size(12.dp),
+                        modifier = Modifier.size(16.dp),
                         imageVector = Icons.Rounded.Star,
                         contentDescription = null,
-                        tint = Color(0xFFFFA500)
+                        tint = Color(0xFFFFBF00)
                     )
+                    Spacer(modifier = Modifier.width(2.dp))
                     Text(
                         text = product.rating.toString(),
                         fontSize = 11.sp,

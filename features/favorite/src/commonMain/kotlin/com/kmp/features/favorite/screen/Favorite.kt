@@ -1,4 +1,4 @@
-package com.kmp.features.product_list
+package com.kmp.features.favorite.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -8,22 +8,27 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.runtime.Composable
@@ -40,83 +45,63 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.paging.LoadState
-import app.cash.paging.compose.collectAsLazyPagingItems
+import com.kmp.api.product.LocalProductRepository
 import com.kmp.api.product.model.product.product.Product
+import com.kmp.features.favorite.viewmodel.FavoriteIntent
+import com.kmp.features.favorite.viewmodel.FavoriteViewModel
 import com.kmp.libraries.component.utils.bounceClickable
 import com.kmp.libraries.component.utils.toRupiah
-import com.kmp.libraries.core.LocalAppConfig
 import com.kmp.libraries.core.viewmodel.rememberViewModel
 import com.seiko.imageloader.rememberImagePainter
 
 @Composable
-fun ProductList(
-    categoryName: String,
-    categoryId: Int,
+fun Favorite(
     navigateToProductDetail: (Product) -> Unit
 ) {
-    val appConfig = LocalAppConfig.current
-    val viewModel = rememberViewModel { ProductListViewModel(appConfig) }
+    val repository = LocalProductRepository.current
+    val viewModel = rememberViewModel { FavoriteViewModel(repository) }
 
     val state by viewModel.uiState.collectAsState()
-    val pagingData = state.pagingDataProduct.collectAsLazyPagingItems()
 
     LaunchedEffect(Unit) {
-        viewModel.sendIntent(ProductListIntent.GetProductList(categoryId))
-        viewModel.sendIntent(ProductListIntent.SetCategoryName(categoryName))
+        viewModel.sendIntent(FavoriteIntent.GetFavoriteProducts)
     }
 
-    Scaffold {
-        LazyVerticalStaggeredGrid(
-            modifier = Modifier.systemBarsPadding(),
-            columns = StaggeredGridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalItemSpacing = 8.dp,
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
-        ) {
-            items(pagingData.itemCount) { index ->
-                val item = pagingData[index]
-                if (item != null) {
-                    ProductItem(
-                        product = item,
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                backgroundColor = Color.White,
+                contentPadding = WindowInsets
+                    .systemBars
+                    .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+                    .asPaddingValues(),
+                content = {
+                    Text(text = "Produk Favorit")
+                },
+                elevation = 0.dp
+            )
+        }
+    ) {
+        if (state.favoriteProducts.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(text = "Tidak ada produk")
+            }
+        } else {
+            LazyVerticalStaggeredGrid(
+                modifier = Modifier.navigationBarsPadding(),
+                columns = StaggeredGridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalItemSpacing = 8.dp,
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                items(state.favoriteProducts) { product ->
+                    FavoriteItem(
+                        product = product,
                         onItemClick = navigateToProductDetail
                     )
-                }
-            }
-
-            when {
-                pagingData.loadState.refresh is LoadState.Loading -> {
-                    item(span = StaggeredGridItemSpan.FullLine) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(170.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-                }
-
-                pagingData.loadState.refresh is LoadState.Error -> {
-                    item(span = StaggeredGridItemSpan.FullLine) { }
-                }
-
-                pagingData.loadState.append is LoadState.Loading -> {
-                    item(span = StaggeredGridItemSpan.FullLine) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(170.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-                }
-
-                pagingData.loadState.append is LoadState.Error -> {
-                    item(span = StaggeredGridItemSpan.FullLine) { }
                 }
             }
         }
@@ -124,7 +109,10 @@ fun ProductList(
 }
 
 @Composable
-private fun ProductItem(product: Product, onItemClick: (Product) -> Unit) {
+private fun FavoriteItem(
+    product: Product,
+    onItemClick: (Product) -> Unit
+) {
     val imagePainter = rememberImagePainter(product.image)
 
     Box(
@@ -181,7 +169,7 @@ private fun ProductItem(product: Product, onItemClick: (Product) -> Unit) {
                             text = product.price.toRupiah,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Light,
-                            color = Color.LightGray,
+                            color = Color.Gray,
                             textDecoration = TextDecoration.LineThrough
                         )
                         Spacer(modifier = Modifier.width(2.dp))
@@ -196,14 +184,16 @@ private fun ProductItem(product: Product, onItemClick: (Product) -> Unit) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        modifier = Modifier.size(12.dp),
+                        modifier = Modifier.size(16.dp),
                         imageVector = Icons.Rounded.Star,
                         contentDescription = null,
-                        tint = Color(0xFFFFA500)
+                        tint = Color(0xFFFFBF00)
                     )
+                    Spacer(modifier = Modifier.width(2.dp))
                     Text(
                         text = product.rating.toString(),
                         fontSize = 11.sp,

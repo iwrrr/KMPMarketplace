@@ -44,6 +44,7 @@ kotlin {
             implementation(projects.features.home)
             implementation(projects.features.productList)
             implementation(projects.features.productDetail)
+            implementation(projects.features.favorite)
 
             // Libraries
             implementation(projects.libraries.component)

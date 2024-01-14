@@ -130,8 +130,11 @@ fun ProductDetail(
                 ProductDetailContent(
                     listState = listState,
                     productDetail = async.data,
-                    isFavorite = false,
+                    isFavorite = state.isFavorite,
                     onToggleFavoriteClick = {
+                        viewModel.sendIntent(
+                            ProductDetailIntent.ToggleFavorite(it)
+                        )
                     }
                 )
             }

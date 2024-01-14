@@ -1,6 +1,7 @@
 package com.kmp.features.product_detail.viewmodel
 
 import com.kmp.api.product.ProductRepository
+import com.kmp.api.product.model.product.product_detail.ProductDetail
 import com.kmp.libraries.core.state.Intent
 import com.kmp.libraries.core.viewmodel.ViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -14,6 +15,11 @@ class ProductDetailViewModel(
         when (intent) {
             is ProductDetailIntent.GetProductDetail -> {
                 getProductDetail(intent.productId)
+                checkIsFavorite(intent.productId)
+            }
+
+            is ProductDetailIntent.ToggleFavorite -> {
+                toggleFavorite(intent.productDetail)
             }
         }
     }
@@ -26,5 +32,23 @@ class ProductDetailViewModel(
                     copy(asyncProductDetail = it)
                 }
             }
+    }
+
+    private fun checkIsFavorite(productId: Int) = viewModelScope.launch {
+        productRepository.checkIsFavorite(productId)
+            .stateIn(viewModelScope)
+            .collectLatest {
+                updateUiState {
+                    copy(isFavorite = it)
+                }
+            }
+    }
+
+    private fun toggleFavorite(productDetail: ProductDetail) = viewModelScope.launch {
+        if (uiState.value.isFavorite) {
+            productRepository.deleteFavorite(productDetail.id)
+        } else {
+            productRepository.insertFavorite(productDetail)
+        }
     }
 }

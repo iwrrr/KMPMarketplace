@@ -1,4 +1,4 @@
-package com.kmp.api.product.model.product
+package com.kmp.api.product.model.product.product
 
 data class Product(
     val id: Int,

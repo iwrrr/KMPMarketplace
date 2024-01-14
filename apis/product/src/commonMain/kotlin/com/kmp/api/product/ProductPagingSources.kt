@@ -3,8 +3,8 @@ package com.kmp.api.product
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.kmp.api.product.model.Mapper
-import com.kmp.api.product.model.product.Product
-import com.kmp.api.product.model.product.ProductResponse
+import com.kmp.api.product.model.product.product.Product
+import com.kmp.api.product.model.product.product.ProductResponse
 import com.kmp.libraries.core.AppConfig
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText

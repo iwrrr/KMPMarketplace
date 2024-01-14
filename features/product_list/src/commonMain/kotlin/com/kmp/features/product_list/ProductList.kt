@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.paging.LoadState
 import app.cash.paging.compose.collectAsLazyPagingItems
-import com.kmp.api.product.model.product.Product
+import com.kmp.api.product.model.product.product.Product
 import com.kmp.libraries.component.utils.bounceClickable
 import com.kmp.libraries.component.utils.toRupiah
 import com.kmp.libraries.core.LocalAppConfig
@@ -66,8 +66,8 @@ fun ProductList(categoryName: String, categoryId: Int) {
         LazyVerticalStaggeredGrid(
             modifier = Modifier.systemBarsPadding(),
             columns = StaggeredGridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalItemSpacing = 12.dp,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalItemSpacing = 8.dp,
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
         ) {
             items(pagingData.itemCount) { index ->

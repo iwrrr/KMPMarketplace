@@ -69,6 +69,22 @@ class ProductRepository(
             }
         }
     }
+
+    suspend fun getFavoriteProducts(): Flow<List<Product>> {
+        return favoriteDataSources.getFavoriteProducts()
+    }
+
+    suspend fun checkIsFavorite(productId: Int): Flow<Boolean> {
+        return favoriteDataSources.checkIsFavorite(productId)
+    }
+
+    suspend fun insertFavorite(productDetail: ProductDetail) {
+        return favoriteDataSources.insertProduct(productDetail)
+    }
+
+    suspend fun deleteFavorite(productId: Int) {
+        return favoriteDataSources.removeProduct(productId)
+    }
 }
 
 val LocalProductRepository =

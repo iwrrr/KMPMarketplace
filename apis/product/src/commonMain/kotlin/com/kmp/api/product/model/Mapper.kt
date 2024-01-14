@@ -3,6 +3,7 @@ package com.kmp.api.product.model
 import com.kmp.api.product.model.category.Category
 import com.kmp.api.product.model.category.CategoryResponse
 import com.kmp.api.product.model.product.product.Product
+import com.kmp.api.product.model.product.product.ProductRealm
 import com.kmp.api.product.model.product.product.ProductResponse
 import com.kmp.api.product.model.product.product_detail.ProductDetail
 import com.kmp.api.product.model.product.product_detail.ProductDetailResponse
@@ -64,6 +65,30 @@ object Mapper {
         return UserReview(
             review = itemResponse?.review.orEmpty(),
             user = itemResponse?.user.orEmpty(),
+        )
+    }
+
+    fun mapProductDetailToRealm(productDetail: ProductDetail): ProductRealm {
+        return ProductRealm()
+            .apply {
+                id = productDetail.id
+                description = productDetail.description
+                discount = productDetail.discount
+                name = productDetail.name
+                price = productDetail.price
+                rating = productDetail.rating
+                image = productDetail.images.first()
+            }
+    }
+
+    fun mapRealmToProduct(productRealm: ProductRealm): Product {
+        return Product(
+            id = productRealm.id,
+            name = productRealm.name,
+            price = productRealm.price,
+            image = productRealm.image,
+            discount = productRealm.discount,
+            rating = productRealm.rating,
         )
     }
 }

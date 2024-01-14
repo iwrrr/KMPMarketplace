@@ -50,7 +50,11 @@ import com.kmp.libraries.core.viewmodel.rememberViewModel
 import com.seiko.imageloader.rememberImagePainter
 
 @Composable
-fun ProductList(categoryName: String, categoryId: Int) {
+fun ProductList(
+    categoryName: String,
+    categoryId: Int,
+    navigateToProductDetail: (Product) -> Unit
+) {
     val appConfig = LocalAppConfig.current
     val viewModel = rememberViewModel { ProductListViewModel(appConfig) }
 
@@ -75,7 +79,7 @@ fun ProductList(categoryName: String, categoryId: Int) {
                 if (item != null) {
                     ProductItem(
                         product = item,
-                        onItemClick = { }
+                        onItemClick = navigateToProductDetail
                     )
                 }
             }

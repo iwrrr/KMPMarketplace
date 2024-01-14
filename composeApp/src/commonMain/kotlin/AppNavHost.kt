@@ -52,10 +52,10 @@ fun AppNavHost(
     ) {
         scene(route = Routes.Home.route) {
             Home(
-                navigateToProductDetail = {
-                    val argument = it.id.toString()
+                navigateToProductDetail = { product ->
+                    val productId = product.id.toString()
 
-                    navigator.navigate(Routes.ProductDetail.route.withArgument(argument))
+                    navigator.navigate(Routes.ProductDetail.route.withArgument(productId))
                 },
                 navigateToProductList = {
                     val argument = ProductListArgument(
@@ -74,7 +74,12 @@ fun AppNavHost(
 
             ProductList(
                 categoryName = data.categoryName,
-                categoryId = data.categoryId
+                categoryId = data.categoryId,
+                navigateToProductDetail = { product ->
+                    val productId = product.id.toString()
+
+                    navigator.navigate(Routes.ProductDetail.route.withArgument(productId))
+                }
             )
         }
 
@@ -89,10 +94,10 @@ fun AppNavHost(
 
         scene(route = Routes.Favorite.route) {
             Favorite(
-                navigateToProductDetail = {
-                    val argument = it.id.toString()
+                navigateToProductDetail = { product ->
+                    val productId = product.id.toString()
 
-                    navigator.navigate(Routes.ProductDetail.route.withArgument(argument))
+                    navigator.navigate(Routes.ProductDetail.route.withArgument(productId))
                 }
             )
         }

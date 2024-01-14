@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.kmp.features.favorite.screen.Favorite
 import com.kmp.features.home.screen.Home
 import com.kmp.features.product_detail.screen.ProductDetail
 import com.kmp.features.product_list.ProductList
@@ -83,6 +84,16 @@ fun AppNavHost(
             ProductDetail(
                 productId = productId,
                 navigateBack = { navigator.goBack() }
+            )
+        }
+
+        scene(route = Routes.Favorite.route) {
+            Favorite(
+                navigateToProductDetail = {
+                    val argument = it.id.toString()
+
+                    navigator.navigate(Routes.ProductDetail.route.withArgument(argument))
+                }
             )
         }
     }

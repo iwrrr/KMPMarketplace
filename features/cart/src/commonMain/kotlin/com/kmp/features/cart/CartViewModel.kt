@@ -27,7 +27,6 @@ class CartViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private fun getCartList() = viewModelScope.launch {
-
         productRepository.getCartList()
             .flatMapMerge {
                 when (it) {

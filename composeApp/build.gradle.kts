@@ -38,13 +38,16 @@ kotlin {
             implementation(compose.components.resources)
 
             // APIs
+            implementation(projects.apis.authentication)
             implementation(projects.apis.product)
 
             // Features
+            implementation(projects.features.authentication)
+            implementation(projects.features.cart)
             implementation(projects.features.home)
+            implementation(projects.features.favorite)
             implementation(projects.features.productList)
             implementation(projects.features.productDetail)
-            implementation(projects.features.favorite)
 
             // Libraries
             implementation(projects.libraries.component)

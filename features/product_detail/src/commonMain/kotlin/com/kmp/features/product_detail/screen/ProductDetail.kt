@@ -12,6 +12,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,6 +36,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomAppBar
+import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Chip
@@ -45,7 +48,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -54,14 +56,13 @@ import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -79,14 +80,12 @@ import com.kmp.api.product.LocalProductRepository
 import com.kmp.api.product.model.product.product_detail.ProductDetail
 import com.kmp.features.product_detail.viewmodel.ProductDetailIntent
 import com.kmp.features.product_detail.viewmodel.ProductDetailViewModel
+import com.kmp.libraries.component.utils.BackHandler
 import com.kmp.libraries.component.utils.bounceClickable
 import com.kmp.libraries.component.utils.toRupiah
 import com.kmp.libraries.core.state.Async
 import com.kmp.libraries.core.viewmodel.rememberViewModel
 import com.seiko.imageloader.rememberImagePainter
-import com.skydoves.flexible.bottomsheet.material.FlexibleBottomSheet
-import com.skydoves.flexible.core.FlexibleSheetValue
-import com.skydoves.flexible.core.rememberFlexibleBottomSheetState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -182,6 +181,7 @@ fun ProductDetail(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun ProductDetailContent(
     listState: LazyListState,
@@ -190,22 +190,91 @@ private fun ProductDetailContent(
     onToggleFavoriteClick: (productDetail: ProductDetail) -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val sheetState = rememberFlexibleBottomSheetState(
-        isModal = true,
-        skipSlightlyExpanded = true,
-        containSystemBars = true
-    )
+    val scaffoldState = rememberBottomSheetScaffoldState()
 
-    var isShowingBottomSheet by remember { mutableStateOf(false) }
+    BackHandler(scaffoldState.bottomSheetState.isExpanded) {
+        scope.launch {
+            scaffoldState.bottomSheetState.collapse()
+        }
+    }
 
-    Scaffold(
-        bottomBar = {
+    BottomSheetScaffold(
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = 0.dp,
+        sheetContent = {
+            Box(
+                Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Swipe up to expand sheet")
+            }
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(64.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Sheet content")
+                Spacer(Modifier.height(20.dp))
+                Button(
+                    onClick = {
+                        scope.launch { scaffoldState.bottomSheetState.collapse() }
+                    }
+                ) {
+                    Text("Click to collapse sheet")
+                }
+            }
+        }
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            LazyColumn(
+                state = listState,
+                contentPadding = PaddingValues(bottom = 120.dp)
+            ) {
+                item {
+                    ProductImageSection(images = productDetail.images)
+                }
+                item {
+                    ProductInfoSection(
+                        productDetail = productDetail,
+                        isFavorite = isFavorite,
+                        onToggleFavoriteClick = onToggleFavoriteClick
+                    )
+                }
+                item {
+                    Divider(
+                        color = Color.LightGray.copy(alpha = 0.3f),
+                        thickness = 8.dp
+                    )
+                }
+                item {
+                    ProductDetailSection(
+                        productDetail = productDetail,
+                        onReadMoreClick = {
+                            scope.launch { scaffoldState.bottomSheetState.expand() }
+                        }
+                    )
+                }
+                item {
+                    Divider(
+                        color = Color.LightGray.copy(alpha = 0.3f),
+                        thickness = 8.dp
+                    )
+                }
+                item {
+                    ProductReviewSection(
+                        productDetail = productDetail,
+                        onSeeAllClick = {}
+                    )
+                }
+            }
+
             BottomAppBar(
-                contentPadding = WindowInsets
-                    .systemBars
-                    .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
-                    .asPaddingValues(),
-                backgroundColor = Color.White
+                backgroundColor = Color.White,
+                contentPadding = WindowInsets.navigationBars.asPaddingValues()
             ) {
                 Row(
                     modifier = Modifier
@@ -238,79 +307,6 @@ private fun ProductDetailContent(
                         onClick = {}
                     ) {
                         Text(text = "+ Keranjang", letterSpacing = 0.sp)
-                    }
-                }
-            }
-        }
-    ) {
-        Box {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = it.calculateBottomPadding()),
-                state = listState
-            ) {
-                item {
-                    ProductImageSection(images = productDetail.images)
-                }
-                item {
-                    ProductInfoSection(
-                        productDetail = productDetail,
-                        isFavorite = isFavorite,
-                        onToggleFavoriteClick = onToggleFavoriteClick
-                    )
-                }
-                item {
-                    Divider(
-                        color = Color.LightGray.copy(alpha = 0.3f),
-                        thickness = 8.dp
-                    )
-                }
-                item {
-                    ProductDetailSection(
-                        productDetail = productDetail,
-                        onReadMoreClick = {
-                            isShowingBottomSheet = !isShowingBottomSheet
-                        }
-                    )
-                }
-                item {
-                    Divider(
-                        color = Color.LightGray.copy(alpha = 0.3f),
-                        thickness = 8.dp
-                    )
-                }
-                item {
-                    ProductReviewSection(
-                        productDetail = productDetail,
-                        onSeeAllClick = {}
-                    )
-                }
-            }
-
-            if (isShowingBottomSheet) {
-                FlexibleBottomSheet(
-                    sheetState = sheetState,
-                    onDismissRequest = {
-                        isShowingBottomSheet = false
-                    },
-                ) {
-                    Button(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        onClick = {
-                            scope.launch {
-                                when (sheetState.swipeableState.currentValue) {
-                                    FlexibleSheetValue.SlightlyExpanded -> sheetState.intermediatelyExpand()
-                                    FlexibleSheetValue.IntermediatelyExpanded -> sheetState.fullyExpand()
-                                    else -> {
-                                        isShowingBottomSheet = false
-                                        sheetState.hide()
-                                    }
-                                }
-                            }
-                        },
-                    ) {
-                        Text(text = "Expand Or Hide")
                     }
                 }
             }

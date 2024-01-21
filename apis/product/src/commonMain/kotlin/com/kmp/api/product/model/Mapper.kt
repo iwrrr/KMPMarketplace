@@ -1,5 +1,8 @@
 package com.kmp.api.product.model
 
+import com.kmp.api.product.model.cart.Cart
+import com.kmp.api.product.model.cart.CartProduct
+import com.kmp.api.product.model.cart.CartResponse
 import com.kmp.api.product.model.category.Category
 import com.kmp.api.product.model.category.CategoryResponse
 import com.kmp.api.product.model.product.product.Product
@@ -89,6 +92,35 @@ object Mapper {
             image = productRealm.image,
             discount = productRealm.discount,
             rating = productRealm.rating,
+        )
+    }
+
+    fun mapResponseToCartList(cartListResponse: CartResponse?): List<Cart> {
+        return cartListResponse?.data?.map(::mapItemResponseToCart).orEmpty()
+    }
+
+    private fun mapItemResponseToCart(itemResponse: CartResponse.DataResponse?): Cart {
+        return Cart(
+            amount = itemResponse?.amount ?: 0.0,
+            createdAt = itemResponse?.createdAt.orEmpty(),
+            discount = itemResponse?.discount ?: 0,
+            price = itemResponse?.price ?: 0.0,
+            productId = itemResponse?.productId ?: 0,
+            quantity = itemResponse?.quantity ?: 0,
+            updatedAt = itemResponse?.updatedAt.orEmpty(),
+        )
+    }
+
+    fun mapCartToCartProduct(cart: Cart, productDetail: ProductDetail): CartProduct {
+        return CartProduct(
+            amount = cart.amount,
+            createdAt = cart.createdAt,
+            discount = cart.discount,
+            price = cart.price,
+            productId = cart.productId,
+            quantity = cart.quantity,
+            updatedAt = cart.updatedAt,
+            productDetail = productDetail
         )
     }
 }

@@ -1,41 +1,32 @@
+
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.kmp.features.favorite.screen.Favorite
-import com.kmp.features.home.screen.Home
+import androidx.compose.runtime.remember
+import com.kmp.features.authentication.login.Login
+import com.kmp.features.authentication.register.Register
+import com.kmp.features.cart.Cart
 import com.kmp.features.product_detail.screen.ProductDetail
 import com.kmp.features.product_list.ProductList
 import com.kmp.features.product_list.ProductListArgument
 import com.kmp.libraries.component.utils.toData
-import com.kmp.libraries.component.utils.toJson
 import moe.tlaster.precompose.navigation.NavHost
+import moe.tlaster.precompose.navigation.NavOptions
+import moe.tlaster.precompose.navigation.PopUpTo
+import moe.tlaster.precompose.navigation.SwipeProperties
 import moe.tlaster.precompose.navigation.transition.NavTransition
 
+@Suppress("OPT_IN_USAGE_FUTURE_ERROR")
 @Composable
 fun AppNavHost(
-    appState: AppState
+    appState: AppState,
 ) {
     val navigator = appState.navigator
-
-    val contentPadding = if (appState.showBottomBar) 56.dp else 0.dp
-    val bottomPadding by animateDpAsState(targetValue = contentPadding)
-
-    val topLevelTransition = NavTransition(
-        createTransition = fadeIn(tween(200)),
-        destroyTransition = fadeOut(tween(200)),
-        pauseTransition = fadeOut(tween(200)),
-        resumeTransition = fadeIn(tween(200))
-    )
 
     val defaultTransition = NavTransition(
         createTransition = enterTransition,
@@ -45,25 +36,56 @@ fun AppNavHost(
     )
 
     NavHost(
-        modifier = Modifier.padding(bottom = bottomPadding),
         navigator = navigator,
-        navTransition = if (appState.showBottomBar) topLevelTransition else defaultTransition,
-        initialRoute = Routes.Home.route
+        navTransition = defaultTransition,
+        swipeProperties = remember { SwipeProperties() },
+        initialRoute = Routes.Main.route
     ) {
-        scene(route = Routes.Home.route) {
-            Home(
-                navigateToProductDetail = { product ->
-                    val productId = product.id.toString()
+        /* ============ TOP LEVEL ROUTES ============ */
 
-                    navigator.navigate(Routes.ProductDetail.route.withArgument(productId))
+        scene(route = Routes.Main.route) {
+            MainScreen(appState)
+        }
+
+        /* ============ END TOP LEVEL ROUTES ============*/
+
+        scene(route = Routes.Login.route) {
+            Login(
+                navigateToHome = {
+                    navigator.navigate(
+                        Routes.Home.route,
+                        NavOptions(
+                            launchSingleTop = true,
+                            popUpTo = PopUpTo.First(true)
+                        )
+                    )
                 },
-                navigateToProductList = {
-                    val argument = ProductListArgument(
-                        categoryId = it.id,
-                        categoryName = it.name
-                    ).toJson()
+                navigateToRegister = {
+                    navigator.navigate(Routes.Register.route)
+                }
+            )
+        }
 
-                    navigator.navigate(Routes.ProductList.route.withArgument(argument))
+        scene(route = Routes.Register.route) {
+            Register(
+                navigateBack = navigator::popBackStack,
+                navigateToHome = {
+                    navigator.navigate(
+                        Routes.Home.route,
+                        NavOptions(
+                            launchSingleTop = true,
+                            popUpTo = PopUpTo.First(true)
+                        )
+                    )
+                }
+            )
+        }
+
+        scene(route = Routes.Cart.route) {
+            Cart(
+                navigateBack = navigator::popBackStack,
+                navigateToLogin = {
+                    navigator.navigate(Routes.Login.route)
                 }
             )
         }
@@ -91,20 +113,10 @@ fun AppNavHost(
                 navigateBack = { navigator.goBack() }
             )
         }
-
-        scene(route = Routes.Favorite.route) {
-            Favorite(
-                navigateToProductDetail = { product ->
-                    val productId = product.id.toString()
-
-                    navigator.navigate(Routes.ProductDetail.route.withArgument(productId))
-                }
-            )
-        }
     }
 }
 
-private fun String.withArgument(argument: String): String {
+fun String.withArgument(argument: String): String {
     val regex = "\\{(.+?)\\}".toRegex()
     return regex.replace(this, argument)
 }

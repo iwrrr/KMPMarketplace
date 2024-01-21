@@ -7,10 +7,14 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Routes(val route: String) {
+    data object Main : Routes(route = "/")
+    data object Cart : Routes(route = "/cart")
     data object Home : Routes(route = "/home")
+    data object Favorite : Routes(route = "/favorite")
+    data object Login : Routes(route = "/login")
+    data object Register : Routes(route = "/register")
     data object ProductList : Routes(route = "/product/list/{$PRODUCT_LIST_ARG}")
     data object ProductDetail : Routes(route = "/product/{$PRODUCT_ID}")
-    data object Favorite : Routes(route = "/favorite")
 }
 
 enum class TopLevelRoute(

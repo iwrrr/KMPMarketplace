@@ -26,6 +26,7 @@ flexible-bottomsheet-material = "0.1.2"
 image-loader = "1.7.1"
 kotlin-serialization = "1.9.21"
 ktor = "2.3.7"
+multiplatform-settings = "1.1.1"
 precompose = "1.5.9"
 realm = "1.11.0"
 
@@ -58,6 +59,7 @@ ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "kto
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+multiplatform-settings = { module = "com.russhwolf:multiplatform-settings-no-arg", version.ref = "multiplatform-settings" }
 paging-androidx-compose = { module = "androidx.paging:paging-compose", version.ref = "paging-androidx" }
 paging-androidx-runtime = { module = "androidx.paging:paging-runtime", version.ref = "paging-androidx" }
 paging-cashapp-common = { module = "app.cash.paging:paging-common", version.ref = "paging-cashapp" }

@@ -48,6 +48,10 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Scaffold
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.SnackbarHost
+import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -76,6 +80,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.kmp.api.product.LocalProductRepository
 import com.kmp.api.product.model.product.product_detail.ProductDetail
 import com.kmp.features.product_detail.viewmodel.ProductDetailIntent
@@ -94,11 +100,16 @@ fun ProductDetail(
     navigateBack: () -> Unit
 ) {
     val productRepository = LocalProductRepository.current
-    val viewModel = rememberViewModel { ProductDetailViewModel(productRepository) }
+    val viewModel = rememberViewModel(isRetain = false) {
+        ProductDetailViewModel(productRepository)
+    }
 
     val state by viewModel.uiState.collectAsState()
 
     val listState = rememberLazyListState()
+    val snackBarHostState = remember { SnackbarHostState() }
+
+    val scope = rememberCoroutineScope()
 
     val isScrolled = listState.firstVisibleItemScrollOffset > 10
 
@@ -116,68 +127,123 @@ fun ProductDetail(
         viewModel.sendIntent(ProductDetailIntent.GetProductDetail(productId))
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        when (val async = state.asyncProductDetail) {
-            Async.Loading -> {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            }
-
+    LaunchedEffect(state.asyncAddToCart) {
+        when (val async = state.asyncAddToCart) {
             is Async.Success -> {
-                ProductDetailContent(
-                    listState = listState,
-                    productDetail = async.data,
-                    isFavorite = state.isFavorite,
-                    onToggleFavoriteClick = {
-                        viewModel.sendIntent(
-                            ProductDetailIntent.ToggleFavorite(it)
-                        )
-                    }
-                )
+                scope.launch {
+                    snackBarHostState.showSnackbar(
+                        message = "Berhasil menambahkan produk ke keranjang",
+                        duration = SnackbarDuration.Short,
+                    )
+                }
             }
 
             is Async.Failure -> {
-                Text(
-                    modifier = Modifier.align(Alignment.Center),
-                    text = async.throwable.message.orEmpty()
-                )
+                scope.launch {
+                    snackBarHostState.showSnackbar(
+                        message = async.throwable.message.toString(),
+                        duration = SnackbarDuration.Short,
+                    )
+                }
             }
 
             else -> {}
         }
+    }
 
-        TopAppBar(
-            backgroundColor = appBarColor,
-            contentColor = contentColor,
-            contentPadding = WindowInsets
-                .systemBars
-                .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
-                .asPaddingValues(),
-            content = {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    IconButton(onClick = navigateBack) {
-                        Icon(
-                            imageVector = Icons.Outlined.ArrowBack,
-                            contentDescription = null
-                        )
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(snackBarHostState)
+        }
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            when (val async = state.asyncProductDetail) {
+                Async.Loading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                }
+
+                is Async.Success -> {
+                    ProductDetailContent(
+                        listState = listState,
+                        productDetail = async.data,
+                        isFavorite = state.isFavorite,
+                        onToggleFavoriteClick = {
+                            viewModel.sendIntent(
+                                ProductDetailIntent.ToggleFavorite(it)
+                            )
+                        },
+                        onAddToCartClick = {
+                            viewModel.sendIntent(
+                                ProductDetailIntent.AddToCart(it.id, 1)
+                            )
+                        }
+                    )
+                }
+
+                is Async.Failure -> {
+                    Text(
+                        modifier = Modifier.align(Alignment.Center),
+                        text = async.throwable.message.orEmpty()
+                    )
+                }
+
+                else -> {}
+            }
+
+            TopAppBar(
+                backgroundColor = appBarColor,
+                contentColor = contentColor,
+                contentPadding = WindowInsets
+                    .systemBars
+                    .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Top)
+                    .asPaddingValues(),
+                content = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        IconButton(onClick = navigateBack) {
+                            Icon(
+                                imageVector = Icons.Outlined.ArrowBack,
+                                contentDescription = null
+                            )
+                        }
+                        IconButton(onClick = {}) {
+                            Icon(
+                                imageVector = Icons.Outlined.ShoppingCart,
+                                contentDescription = null
+                            )
+                        }
                     }
-                    IconButton(onClick = {}) {
-                        Icon(
-                            imageVector = Icons.Outlined.ShoppingCart,
-                            contentDescription = null
-                        )
+                },
+                elevation = 0.dp
+            )
+
+            when (state.asyncAddToCart) {
+                Async.Loading -> {
+                    Dialog(
+                        onDismissRequest = { },
+                        DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(100.dp)
+                                .background(color = Color.White, shape = RoundedCornerShape(8.dp))
+                        ) {
+                            CircularProgressIndicator()
+                        }
                     }
                 }
-            },
-            elevation = 0.dp
-        )
+
+                else -> {}
+            }
+        }
     }
 }
 
@@ -187,7 +253,8 @@ private fun ProductDetailContent(
     listState: LazyListState,
     productDetail: ProductDetail,
     isFavorite: Boolean,
-    onToggleFavoriteClick: (productDetail: ProductDetail) -> Unit
+    onToggleFavoriteClick: (productDetail: ProductDetail) -> Unit,
+    onAddToCartClick: (productDetail: ProductDetail) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val scaffoldState = rememberBottomSheetScaffoldState()
@@ -304,7 +371,9 @@ private fun ProductDetailContent(
                             hoveredElevation = 0.dp,
                             focusedElevation = 0.dp
                         ),
-                        onClick = {}
+                        onClick = {
+                            onAddToCartClick.invoke(productDetail)
+                        }
                     ) {
                         Text(text = "+ Keranjang", letterSpacing = 0.sp)
                     }

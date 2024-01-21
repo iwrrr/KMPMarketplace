@@ -6,4 +6,5 @@ import com.kmp.libraries.core.state.Intent
 sealed class ProductDetailIntent : Intent {
     data class GetProductDetail(val productId: Int) : ProductDetailIntent()
     data class ToggleFavorite(val productDetail: ProductDetail) : ProductDetailIntent()
+    data class AddToCart(val productId: Int, val qty: Int) : ProductDetailIntent()
 }

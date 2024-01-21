@@ -21,12 +21,16 @@ class ProductDetailViewModel(
             is ProductDetailIntent.ToggleFavorite -> {
                 toggleFavorite(intent.productDetail)
             }
+
+            is ProductDetailIntent.AddToCart -> {
+                addToCart(intent.productId, intent.qty)
+            }
         }
     }
 
     private fun getProductDetail(productId: Int) = viewModelScope.launch {
         productRepository.getProductDetail(productId)
-            .stateIn(viewModelScope)
+            .stateIn(this)
             .collectLatest {
                 updateUiState {
                     copy(asyncProductDetail = it)
@@ -36,7 +40,7 @@ class ProductDetailViewModel(
 
     private fun checkIsFavorite(productId: Int) = viewModelScope.launch {
         productRepository.checkIsFavorite(productId)
-            .stateIn(viewModelScope)
+            .stateIn(this)
             .collectLatest {
                 updateUiState {
                     copy(isFavorite = it)
@@ -50,5 +54,18 @@ class ProductDetailViewModel(
         } else {
             productRepository.insertFavorite(productDetail)
         }
+    }
+
+    private fun addToCart(productId: Int, qty: Int) = viewModelScope.launch {
+        productRepository.addToCart(
+            productId = productId.toString(),
+            qty = qty.toString()
+        )
+            .stateIn(this)
+            .collectLatest {
+                updateUiState {
+                    copy(asyncAddToCart = it)
+                }
+            }
     }
 }

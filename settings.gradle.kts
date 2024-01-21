@@ -19,10 +19,12 @@ dependencyResolutionManagement {
 }
 
 include(":composeApp")
+include(":apis:authentication")
 include(":apis:product")
-include(":features:home")
 include(":libraries:component")
 include(":libraries:core")
+include(":features:authentication")
+include(":features:favorite")
+include(":features:home")
 include(":features:product_detail")
 include(":features:product_list")
-include(":features:favorite")

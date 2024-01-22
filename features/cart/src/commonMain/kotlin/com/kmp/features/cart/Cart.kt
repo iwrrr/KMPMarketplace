@@ -88,7 +88,9 @@ fun Cart(
 
                 is Async.Success -> {
                     LazyColumn(
-                        modifier = Modifier.navigationBarsPadding(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .navigationBarsPadding(),
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {

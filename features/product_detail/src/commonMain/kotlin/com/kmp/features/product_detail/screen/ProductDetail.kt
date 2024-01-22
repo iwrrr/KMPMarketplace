@@ -34,9 +34,9 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomAppBar
-import androidx.compose.material.BottomSheetScaffold
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Chip
@@ -46,8 +46,11 @@ import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.Scaffold
+import androidx.compose.material.SnackbarDuration
+import androidx.compose.material.SnackbarHostState
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -56,7 +59,7 @@ import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.rememberBottomSheetScaffoldState
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -76,6 +79,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.kmp.api.product.LocalProductRepository
 import com.kmp.api.product.model.product.product_detail.ProductDetail
 import com.kmp.features.product_detail.viewmodel.ProductDetailIntent
@@ -94,11 +99,16 @@ fun ProductDetail(
     navigateBack: () -> Unit
 ) {
     val productRepository = LocalProductRepository.current
-    val viewModel = rememberViewModel { ProductDetailViewModel(productRepository) }
+    val viewModel = rememberViewModel(isRetain = false) {
+        ProductDetailViewModel(productRepository)
+    }
 
     val state by viewModel.uiState.collectAsState()
 
     val listState = rememberLazyListState()
+    val snackBarHostState = remember { SnackbarHostState() }
+
+    val scope = rememberCoroutineScope()
 
     val isScrolled = listState.firstVisibleItemScrollOffset > 10
 
@@ -116,6 +126,30 @@ fun ProductDetail(
         viewModel.sendIntent(ProductDetailIntent.GetProductDetail(productId))
     }
 
+    LaunchedEffect(state.asyncAddToCart) {
+        when (val async = state.asyncAddToCart) {
+            is Async.Success -> {
+                scope.launch {
+                    snackBarHostState.showSnackbar(
+                        message = "Berhasil menambahkan produk ke keranjang",
+                        duration = SnackbarDuration.Short,
+                    )
+                }
+            }
+
+            is Async.Failure -> {
+                scope.launch {
+                    snackBarHostState.showSnackbar(
+                        message = async.throwable.message.toString(),
+                        duration = SnackbarDuration.Short,
+                    )
+                }
+            }
+
+            else -> {}
+        }
+    }
+
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
@@ -128,11 +162,17 @@ fun ProductDetail(
             is Async.Success -> {
                 ProductDetailContent(
                     listState = listState,
+                    snackBarHostState = snackBarHostState,
                     productDetail = async.data,
                     isFavorite = state.isFavorite,
                     onToggleFavoriteClick = {
                         viewModel.sendIntent(
                             ProductDetailIntent.ToggleFavorite(it)
+                        )
+                    },
+                    onAddToCartClick = {
+                        viewModel.sendIntent(
+                            ProductDetailIntent.AddToCart(it.id, 1)
                         )
                     }
                 )
@@ -178,6 +218,26 @@ fun ProductDetail(
             },
             elevation = 0.dp
         )
+
+        when (state.asyncAddToCart) {
+            Async.Loading -> {
+                Dialog(
+                    onDismissRequest = { },
+                    DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+                ) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .background(color = Color.White, shape = RoundedCornerShape(8.dp))
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            }
+
+            else -> {}
+        }
     }
 }
 
@@ -185,50 +245,74 @@ fun ProductDetail(
 @Composable
 private fun ProductDetailContent(
     listState: LazyListState,
+    snackBarHostState: SnackbarHostState,
     productDetail: ProductDetail,
     isFavorite: Boolean,
-    onToggleFavoriteClick: (productDetail: ProductDetail) -> Unit
+    onToggleFavoriteClick: (productDetail: ProductDetail) -> Unit,
+    onAddToCartClick: (productDetail: ProductDetail) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val scaffoldState = rememberBottomSheetScaffoldState()
 
-    BackHandler(scaffoldState.bottomSheetState.isExpanded) {
+    val state = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+        skipHalfExpanded = true
+    )
+
+    BackHandler(state.isVisible) {
         scope.launch {
-            scaffoldState.bottomSheetState.collapse()
+            state.hide()
         }
     }
 
-    BottomSheetScaffold(
-        scaffoldState = scaffoldState,
-        sheetPeekHeight = 0.dp,
+    ModalBottomSheetLayout(
+        sheetState = state,
+        sheetShape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         sheetContent = {
-            Box(
-                Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Swipe up to expand sheet")
-            }
             Column(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(64.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier
+                    .padding(
+                        WindowInsets.navigationBars.asPaddingValues()
+                    )
+                    .padding(16.dp),
             ) {
-                Text("Sheet content")
-                Spacer(Modifier.height(20.dp))
-                Button(
-                    onClick = {
-                        scope.launch { scaffoldState.bottomSheetState.collapse() }
-                    }
-                ) {
-                    Text("Click to collapse sheet")
-                }
+                Text(text = productDetail.description)
             }
         }
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter
+        Scaffold(
+            bottomBar = {
+                BottomAppBar(
+                    backgroundColor = Color.White,
+                    contentPadding = WindowInsets.navigationBars.asPaddingValues()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                    ) {
+                        Button(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(16.dp),
+                            shape = CircleShape,
+                            elevation = ButtonDefaults.elevation(
+                                defaultElevation = 0.dp,
+                                pressedElevation = 0.dp,
+                                disabledElevation = 0.dp,
+                                hoveredElevation = 0.dp,
+                                focusedElevation = 0.dp
+                            ),
+                            onClick = {
+                                onAddToCartClick.invoke(productDetail)
+                            }
+                        ) {
+                            Text(
+                                text = "Tambah ke Keranjang",
+                                letterSpacing = 0.sp
+                            )
+                        }
+                    }
+                }
+            }
         ) {
             LazyColumn(
                 state = listState,
@@ -254,7 +338,7 @@ private fun ProductDetailContent(
                     ProductDetailSection(
                         productDetail = productDetail,
                         onReadMoreClick = {
-                            scope.launch { scaffoldState.bottomSheetState.expand() }
+                            scope.launch { state.show() }
                         }
                     )
                 }
@@ -269,45 +353,6 @@ private fun ProductDetailContent(
                         productDetail = productDetail,
                         onSeeAllClick = {}
                     )
-                }
-            }
-
-            BottomAppBar(
-                backgroundColor = Color.White,
-                contentPadding = WindowInsets.navigationBars.asPaddingValues()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    OutlinedButton(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(40.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, color = MaterialTheme.colors.primary),
-                        onClick = {}
-                    ) {
-                        Text(text = "Beli Langsung", letterSpacing = 0.sp)
-                    }
-                    Button(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(40.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        elevation = ButtonDefaults.elevation(
-                            defaultElevation = 0.dp,
-                            pressedElevation = 0.dp,
-                            disabledElevation = 0.dp,
-                            hoveredElevation = 0.dp,
-                            focusedElevation = 0.dp
-                        ),
-                        onClick = {}
-                    ) {
-                        Text(text = "+ Keranjang", letterSpacing = 0.sp)
-                    }
                 }
             }
         }

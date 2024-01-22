@@ -5,5 +5,6 @@ import com.kmp.libraries.core.state.Async
 
 data class ProductDetailState(
     val asyncProductDetail: Async<ProductDetail> = Async.Default,
+    val asyncAddToCart: Async<Unit> = Async.Default,
     val isFavorite: Boolean = false
 )

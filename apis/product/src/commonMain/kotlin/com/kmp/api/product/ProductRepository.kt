@@ -2,6 +2,7 @@ package com.kmp.api.product
 
 import androidx.compose.runtime.compositionLocalOf
 import com.kmp.api.product.model.Mapper
+import com.kmp.api.product.model.cart.AddToCartResponse
 import com.kmp.api.product.model.cart.Cart
 import com.kmp.api.product.model.cart.CartResponse
 import com.kmp.api.product.model.category.Category
@@ -12,15 +13,9 @@ import com.kmp.api.product.model.product.product_detail.ProductDetail
 import com.kmp.api.product.model.product.product_detail.ProductDetailResponse
 import com.kmp.libraries.core.AppConfig
 import com.kmp.libraries.core.local.TokenDataSources
-import com.kmp.libraries.core.network.UnauthorizedException
 import com.kmp.libraries.core.repository.Repository
 import com.kmp.libraries.core.state.Async
-import io.ktor.client.call.body
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.isSuccess
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 
 class ProductRepository(
     private val appConfig: AppConfig,
@@ -113,24 +108,20 @@ class ProductRepository(
         }
     }
 
-    fun getCartListTest(): Flow<List<Cart>> = flow {
-        val httpResponse = cartDataSources.getCartList()
+    fun addToCart(
+        productId: String,
+        qty: String
+    ): Flow<Async<Unit>> {
+        return suspend {
+            cartDataSources.addToCart(productId, qty)
+        }.reduce<AddToCartResponse, Unit> { response ->
+            val responseData = response.data
 
-        when {
-            httpResponse.status.isSuccess() -> {
-                val response = httpResponse.body<CartResponse>()
-                val data = Mapper.mapResponseToCartList(response)
-                emit(data)
-            }
-
-            httpResponse.status == HttpStatusCode.Unauthorized -> {
-                val throwable = UnauthorizedException()
-                throw throwable
-            }
-
-            else -> {
-                val throwable = Throwable(httpResponse.bodyAsText())
-                throw throwable
+            if (responseData.isNullOrEmpty()) {
+                val throwable = Throwable("Failed add product to cart")
+                Async.Failure(throwable)
+            } else {
+                Async.Success(Unit)
             }
         }
     }
